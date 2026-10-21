@@ -1,0 +1,6 @@
+option(
+	'node_include_dir',
+	type: 'string',
+	value: '',
+	description: 'Directory containing node_api.h (detected from the node executable when empty)'
+)

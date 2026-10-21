@@ -1,0 +1,53 @@
+{
+	"name": "haiku-react",
+	"version": "0.1.0",
+	"description": "React renderer for native Haiku Interface Kit windows, controls, layouts and menus",
+	"private": true,
+	"license": "MIT",
+	"type": "module",
+	"engines": {
+		"node": ">=22"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/src/index.d.ts",
+			"default": "./dist/src/index.js"
+		}
+	},
+	"files": [
+		"dist/src",
+		"native/meson.build",
+		"native/src",
+		"meson.build",
+		"meson_options.txt",
+		"scripts/build-native.mjs",
+		"scripts/node-build-paths.cjs",
+		"README.md"
+	],
+	"scripts": {
+		"install": "node scripts/build-native.mjs",
+		"prepare": "npm run build:ts",
+		"build:native": "node scripts/build-native.mjs",
+		"build:ts": "tsc -p tsconfig.json",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"build": "npm run build:native && npm run build:ts",
+		"test": "node --test \"dist/test/**/*.test.js\"",
+		"example": "node scripts/run-example.mjs",
+		"spike:build": "meson setup spike/build spike --reconfigure && meson compile -C spike/build",
+		"spike": "node spike/spike.mjs"
+	},
+	"dependencies": {
+		"node-addon-api": "^8.9.2",
+		"react-reconciler": "0.34.0"
+	},
+	"peerDependencies": {
+		"react": "^19.3.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.0.0",
+		"@types/react": "19.3.0",
+		"@types/react-reconciler": "0.34.1",
+		"react": "19.3.1",
+		"typescript": "6.0.3"
+	}
+}
