@@ -1,33 +1,36 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <vector>
 
+#include "../PropSet.h"
 #include "ViewNode.h"
-
-class BStringItem;
 
 
 namespace HaikuReact {
 
 
+class ReactListItem;
 class ReactListView;
 
 
-// <ListView>: BListView of text items; place it in a <Scroll> to scroll.
-// BListView does not own its items, the node does.
-// Events: selectionChange (indices), invoke (index; double-click or Enter).
+// <ListView>: BOutlineListView of <ListItem> children, or of the entries of
+// the items prop (whose ids are their indices); place it in a <Scroll> to
+// scroll. BListView does not own its items, the nodes do.
+// Events: selectionChange (ids, or indices with items), invoke (id or
+// index; double-click or Enter).
 class ListViewNode: public ViewNode {
 private:
 	ReactListView *fListView;
-	std::vector<std::string> fLabels;
-	std::vector<std::unique_ptr<BStringItem>> fItems;
-	std::vector<int32> fSelection;
+	std::vector<LabeledItem> fLabels;
+	std::vector<std::unique_ptr<ReactListItem>> fItems;
 
-	void SetItems(const std::vector<std::string> &labels);
+	void SetItems(const std::vector<LabeledItem> &labels);
 
 protected:
+	void AttachChild(Node &child, int32 index) final;
+	void DetachChild(Node &child) final;
+	void ChildListChanged() final;
 	void ApplyOwnProps(const PropSet &props) final;
 
 public:
@@ -37,6 +40,7 @@ public:
 	const char *TypeName() const final {return "ListView";}
 	bool ScrollsItself() const final {return true;}
 
+	void Invoke() final;
 	void SimulateInput(const EventValue &value) final;
 	void Dump(Napi::Object &out) const final;
 };

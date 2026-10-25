@@ -49,14 +49,42 @@ function toNativeProps(type: string, props: Props): Props {
 	if (textProperty !== undefined && isTextContent(props.children)) {
 		result[textProperty] = Array.isArray(props.children) ? props.children.join('') : String(props.children);
 	}
+	// A menu that loads its items when it opens shows a placeholder until
+	// they exist.
+	if (type === 'Menu' && typeof props.onOpen === 'function') {
+		result.loadsOnOpen = true;
+	}
 	return result;
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	if (typeof value !== 'object' || value === null) {
+		return false;
+	}
+	const prototype = Object.getPrototypeOf(value);
+	return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Structural equality for prop values, so that inline objects and arrays such
+ * as icon={{mimeType: 'text/plain'}} are not resent on every render. Binary
+ * data compares by identity.
+ */
 function sameValue(a: unknown, b: unknown): boolean {
 	if (Object.is(a, b)) {
 		return true;
 	}
-	return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, i) => Object.is(item, b[i]));
+	if (Array.isArray(a) && Array.isArray(b)) {
+		return a.length === b.length && a.every((item, i) => sameValue(item, b[i]));
+	}
+	if (a instanceof Date && b instanceof Date) {
+		return a.getTime() === b.getTime();
+	}
+	if (isPlainObject(a) && isPlainObject(b)) {
+		const keys = Object.keys(a);
+		return keys.length === Object.keys(b).length && keys.every((key) => key in b && sameValue(a[key], b[key]));
+	}
+	return false;
 }
 
 /** Native props for a new instance: initial values apply unless the value prop is set. */

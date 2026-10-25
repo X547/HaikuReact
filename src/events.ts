@@ -51,6 +51,17 @@ const eventValueTransforms: Readonly<Record<string, (value: NativeEventValue) =>
 		const [width, height] = value as number[];
 		return {width, height};
 	},
+	load(value) {
+		const [width, height] = value as number[];
+		return {width, height};
+	},
+	/** ['name:ascending', …] */
+	sortChange(value) {
+		return (value as string[]).map((key) => {
+			const separator = key.lastIndexOf(':');
+			return {column: key.slice(0, separator), direction: key.slice(separator + 1)};
+		});
+	},
 };
 
 /** Sends the controlled value props of a still mounted instance to its node again. */

@@ -8,7 +8,9 @@
 
 #include "../NodeEventMessage.h"
 #include "../PropSet.h"
+#include "../ReactMenuItem.h"
 #include "../StatusCheck.h"
+#include "MenuEntryNode.h"
 
 
 namespace HaikuReact {
@@ -22,7 +24,7 @@ MenuFieldNode::MenuFieldNode(uint32 id):
 }
 
 
-void MenuFieldNode::SetItems(const std::vector<std::string> &items)
+void MenuFieldNode::SetItems(const std::vector<LabeledItem> &items)
 {
 	if (items == fItems) {
 		return;
@@ -31,7 +33,9 @@ void MenuFieldNode::SetItems(const std::vector<std::string> &items)
 	for (size_t i = 0; i < items.size(); i++) {
 		BMessage *message = MakeNodeMessage(Id(), "change", EventValueKind::Index);
 		message->AddInt32(kFieldEventValue, static_cast<int32>(i));
-		fMenu->AddItem(new BMenuItem(items[i].c_str(), message));
+		auto *item = new ReactMenuItem(items[i].label.c_str(), message);
+		item->SetIcon(items[i].icon);
+		fMenu->AddItem(item);
 	}
 	fItems = items;
 	MarkValue();
@@ -61,7 +65,7 @@ void MenuFieldNode::ApplyOwnProps(const PropSet &props)
 	if (auto enabled = props.Get<bool>("enabled", true)) {
 		fMenuField->SetEnabled(*enabled);
 	}
-	if (auto items = props.Get<std::vector<std::string>>("items", {})) {
+	if (auto items = props.Get<std::vector<LabeledItem>>("items", {})) {
 		SetItems(*items);
 	}
 	if (auto value = props.Get<int32>("value", -1)) {
@@ -91,6 +95,16 @@ void MenuFieldNode::Dump(Napi::Object &out) const
 	out.Set("label", fMenuField->Label() != nullptr ? fMenuField->Label() : "");
 	out.Set("value", fMenu->IndexOf(fMenu->FindMarked()));
 	out.Set("enabled", fMenuField->IsEnabled());
+
+	Napi::Env env = out.Env();
+	Napi::Array items = Napi::Array::New(env, fMenu->CountItems());
+	for (int32 i = 0; i < fMenu->CountItems(); i++) {
+		Napi::Object itemOut = Napi::Object::New(env);
+		itemOut.Set("label", fMenu->ItemAt(i)->Label());
+		DumpMenuItem(itemOut, *static_cast<ReactMenuItem*>(fMenu->ItemAt(i)));
+		items.Set(i, itemOut);
+	}
+	out.Set("items", items);
 }
 
 

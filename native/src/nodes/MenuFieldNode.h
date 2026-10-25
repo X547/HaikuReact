@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "../PropSet.h"
 #include "ViewNode.h"
 
 class BMenuField;
@@ -12,16 +13,17 @@ class BPopUpMenu;
 namespace HaikuReact {
 
 
-// <MenuField>: BMenuField with a pop-up menu of text items; the marked item
-// is shown as the field's value. Events: change (index).
+// <MenuField>: BMenuField with a pop-up menu of items (text, optionally an
+// icon, which only the pop-up shows); the marked item is shown as the
+// field's value. Events: change (index).
 class MenuFieldNode: public ViewNode {
 private:
 	BMenuField *fMenuField;
 	BPopUpMenu *fMenu;
-	std::vector<std::string> fItems;
+	std::vector<LabeledItem> fItems;
 	int32 fValue = -1;
 
-	void SetItems(const std::vector<std::string> &items);
+	void SetItems(const std::vector<LabeledItem> &items);
 	void MarkValue();
 
 protected:

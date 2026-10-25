@@ -10,13 +10,18 @@
 #include "nodes/ButtonNode.h"
 #include "nodes/CardsNode.h"
 #include "nodes/CheckBoxNode.h"
+#include "nodes/ColumnListViewNode.h"
 #include "nodes/GridNode.h"
 #include "nodes/GroupNode.h"
+#include "nodes/IconNode.h"
+#include "nodes/ImageNode.h"
+#include "nodes/ListItemNode.h"
 #include "nodes/ListViewNode.h"
 #include "nodes/MenuBarNode.h"
 #include "nodes/MenuFieldNode.h"
 #include "nodes/MenuItemNode.h"
 #include "nodes/RadioButtonNode.h"
+#include "nodes/RowNode.h"
 #include "nodes/ScrollNode.h"
 #include "nodes/SeparatorNode.h"
 #include "nodes/SliderNode.h"
@@ -56,15 +61,20 @@ static const std::unordered_map<std::string_view, NodeCreator> kCreators = {
 	{"Button",      CreateNode<ButtonNode>},
 	{"Cards",       CreateNode<CardsNode>},
 	{"CheckBox",    CreateNode<CheckBoxNode>},
+	{"ColumnListView", CreateNode<ColumnListViewNode>},
 	{"Glue",        CreateNode<GlueNode>},
 	{"Grid",        CreateNode<GridNode>},
 	{"Group",       CreateNode<GroupNode>},
+	{"Icon",        CreateNode<IconNode>},
+	{"Image",       CreateNode<ImageNode>},
+	{"ListItem",    CreateNode<ListItemNode>},
 	{"ListView",    CreateNode<ListViewNode>},
 	{"Menu",        CreateNode<SubmenuNode>},
 	{"MenuBar",     CreateNode<MenuBarNode>},
 	{"MenuField",   CreateNode<MenuFieldNode>},
 	{"MenuItem",    CreateNode<MenuItemNode>},
 	{"RadioButton", CreateNode<RadioButtonNode>},
+	{"Row",         CreateNode<RowNode>},
 	{"Scroll",      CreateNode<ScrollNode>},
 	{"Separator",   CreateNode<SeparatorNode>},
 	{"Slider",      CreateNode<SliderNode>},

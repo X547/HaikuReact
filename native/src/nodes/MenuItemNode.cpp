@@ -9,6 +9,7 @@
 #include "../KeyModifiers.h"
 #include "../NodeEventMessage.h"
 #include "../PropSet.h"
+#include "../ReactMenuItem.h"
 #include "../StatusCheck.h"
 
 
@@ -16,7 +17,7 @@ namespace HaikuReact {
 
 
 MenuItemNode::MenuItemNode(uint32 id):
-	MenuEntryNode(id, new BMenuItem("", MakeNodeMessage(id, "click")))
+	MenuEntryNode(id, new ReactMenuItem("", MakeNodeMessage(id, "click")))
 {
 }
 

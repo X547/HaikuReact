@@ -26,7 +26,7 @@ static Napi::Value ValueToJs(Napi::Env env, const EventValue &value)
 				return Napi::Boolean::New(env, item);
 			} else if constexpr (std::is_same_v<T, std::string>) {
 				return Napi::String::New(env, item);
-			} else if constexpr (std::is_same_v<T, std::vector<int32>>) {
+			} else if constexpr (std::is_same_v<T, std::vector<int32>> || std::is_same_v<T, std::vector<std::string>>) {
 				Napi::Array array = Napi::Array::New(env, item.size());
 				for (uint32 i = 0; i < item.size(); i++) {
 					array.Set(i, item[i]);

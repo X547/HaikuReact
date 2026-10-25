@@ -12,7 +12,9 @@
 namespace HaikuReact {
 
 
-using EventValue = std::variant<std::monostate, bool, int32, double, std::string, std::vector<int32>>;
+using EventValue = std::variant<
+	std::monostate, bool, int32, double, std::string, std::vector<int32>, std::vector<std::string>
+>;
 
 // A native event on its way to JS. Node id 0 addresses the application.
 struct Event {

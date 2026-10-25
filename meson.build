@@ -28,7 +28,11 @@ shared_module(
 	name_suffix: 'node',
 	include_directories: [
 		include_directories(nodeIncludeDir),
-		include_directories(nodeAddonApiDir)
+		include_directories(nodeAddonApiDir),
+		# BColumnListView is private API (included as <interface/...> so that
+		# no private header shadows a public one); its static library is
+		# installed with the headers.
+		include_directories('/boot/system/develop/headers/private')
 	],
 	cpp_args: [
 		'-DNAPI_VERSION=9',
@@ -36,5 +40,9 @@ shared_module(
 		'-DNODE_ADDON_API_CPP_EXCEPTIONS_ALL',
 		'-DNODE_ADDON_API_DISABLE_DEPRECATED'
 	],
-	dependencies: cpp.find_library('be')
+	dependencies: [
+		cpp.find_library('be'),
+		cpp.find_library('translation'),
+		cpp.find_library('columnlistview')
+	]
 )

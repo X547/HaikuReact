@@ -157,19 +157,74 @@ Sizes and positions are pixels. Props marked *creation* are read when the elemen
 | `TextView` | `BTextView` | `text`, `defaultText`, `editable`, `selectable`, `wordWrap` | `onChange(text)` |
 | `Slider` | `BSlider` | `label`, `min`, `max`, `value`, `defaultValue`, `enabled`, `orientation`, `hashMarks` (`'none'`, `'top'`, `'bottom'`, `'both'`), `hashMarkCount`, `minLabel`, `maxLabel` | `onChange(value)` while dragging, `onChangeEnd(value)` |
 | `StatusBar` | `BStatusBar` | `label`, `trailingLabel`, `text`, `trailingText`, `value`, `maxValue` | |
-| `ListView` | `BListView` | `items` (strings), `selection`, `defaultSelection`, `multiple` | `onSelectionChange(indices)`, `onInvoke(index)` |
-| `MenuField` | `BMenuField` | `label`, `items` (strings), `value`, `defaultValue`, `enabled` | `onChange(index)` |
+| `MenuField` | `BMenuField` | `label`, `items` (strings or `{label, icon}`; icons show in the pop-up only), `value`, `defaultValue`, `enabled` | `onChange(index)` |
+| `Icon` | `BView` | `source` (an [icon source](#images-and-icons)), `size` (default 16) | |
+| `Image` | `BView` | `src` (`{path}` or `{data}`), `fit` (`'contain'` default, `'cover'`, `'fill'`, `'none'`) | `onLoad({width, height})`, `onError(message)` |
 
-Put `TextView` and `ListView` in a `Scroll` to scroll them.
+Put `TextView` and `ListView` in a `Scroll` to scroll them; `ColumnListView` scrolls itself.
+
+### Images and icons
+
+Icon props (`Icon`'s `source`, `icon` of list and menu items, icon cells) take one of:
+
+| Source | Icon |
+|---|---|
+| `{system: 'dialog-warning'}` | built into Haiku: `'dialog-information'`, `'dialog-idea'`, `'dialog-warning'`, `'dialog-error'`, and flags like `'flag-de'` |
+| `{mimeType: 'text/plain'}` | of a file type; `'application/x-vnd.Be-directory'` is a folder. Unknown subtypes show their supertype's icon |
+| `{file: '/boot/home'}` | what Tracker shows for that file or folder |
+| `{app: 'application/x-vnd.Haiku-StyledEdit'}` | of an application, by signature |
+| `{path: '…/icon.hvif'}` | an HVIF or image file |
+| `{data: bytes}` | HVIF or image bytes (`Uint8Array`, `Buffer` or `ArrayBuffer`) |
+
+Icons load when the element is rendered; vector icons are drawn at their size, scaled with the system font like the rest of the interface (`size={16}` is 16 pixels at the default font size). Identical icons share one bitmap. A source without an icon shows nothing.
+
+`Image` decodes any format a Haiku translator reads, in the background; the image appears and `onLoad` is called when it is ready. Its preferred and minimum size is the image's, scaled down to `maxWidth`/`maxHeight`; set `minWidth`/`minHeight` to let it shrink further, and `fit` decides how it fills a larger or smaller view.
+
+### Lists
+
+| Element | Haiku class | Props | Events |
+|---|---|---|---|
+| `ListView` | `BOutlineListView` | `items` (strings or `{label, icon}`) *or* `ListItem` children, `selection`, `defaultSelection`, `multiple` | `onSelectionChange(selection)`, `onInvoke(id)` |
+| `ListItem` | `BListItem` | `id`, `label`, `icon`, `hasChildren`, `expanded`, `defaultExpanded`, `loading`, `loadingLabel`; children: `ListItem` | `onExpand()`, `onCollapse()` |
+| `ColumnListView` | `BColumnListView` | `columns`, `sort`, `defaultSort`, `selection`, `defaultSelection`, `multiple`; children: `Row` | `onSelectionChange(ids)`, `onInvoke(id)`, `onSortChange(sort)` |
+| `Row` | `BRow` | `id`, `cells`, and the `ListItem` props for nesting and loading | `onExpand()`, `onCollapse()` |
+
+With the `items` shortcut, `selection` and the events use indices, as before; with `ListItem` children they use the items' `id`s, which stay valid while items are inserted, moved, expanded or collapsed. Only shown items can be selected.
+
+Children load on demand like this: `hasChildren` shows the expand arrow before there are children, and while an expanded item has none it shows a dimmed "Loading…" child (text: `loadingLabel`; `loading` forces it next to existing children). The user expanding the item calls `onExpand`, which can start loading; the placeholder goes away when the first child arrives. If loading finds no children, set `hasChildren` to false, or the placeholder stays. `expanded` is controlled like other values: without a handler that sets it, the item collapses again.
+
+```tsx
+<Scroll>
+	<ListView selection={selected} onSelectionChange={setSelected}>
+		<ListItem id="music" label="Music" icon={{file: '/boot/home/music'}} hasChildren onExpand={() => load('music')}>
+			{folders.music?.map((entry) => <ListItem key={entry.id} id={entry.id} label={entry.name}/>)}
+		</ListItem>
+	</ListView>
+</Scroll>
+```
+
+`ColumnListView` columns are `{id, title, type, width, minWidth, maxWidth, align}`, `type` being `'text'` (strings, numbers or `{text, icon}`), `'integer'`, `'size'` (bytes, shown as KiB, MiB, …), `'date'` (`Date` or milliseconds) or `'icon'` (an icon source). A row's `cells` give values by column id; missing cells are blank. The user can resize and reorder columns and sort by clicking their titles, reported as `onSortChange([{column, direction}])`; `sort` sets the order (`[]` for child order). While a sort is active, rows show in sort order rather than in the order of the `Row` children. Changing `columns` rebuilds the list.
+
+`BColumnListView` is private Haiku API (it is installed with Haiku's development headers and linked statically), so details may change with Haiku versions.
 
 ### Menus
 
 | Element | Haiku class | Props | Events |
 |---|---|---|---|
-| `MenuBar` | `BMenuBar` | children: `Menu`, `MenuItem`, `Separator` | |
-| `Menu` | `BMenu` | `label`, `enabled`, `radioMode` | |
-| `MenuItem` | `BMenuItem` | `label` or text children, `enabled`, `marked`, `shortcut` (with Command), `modifiers` (`'shift'`, `'option'`, `'control'`) | `onClick()` |
+| `MenuBar` | `BMenuBar` | `iconSize` (default 16); children: `Menu`, `MenuItem`, `Separator` | |
+| `Menu` | `BMenu` | `label`, `icon`, `iconSize` (of its items), `enabled`, `radioMode`, `loading`, `loadingLabel` | `onOpen()`, `onClose()` |
+| `MenuItem` | `BMenuItem` | `label` or text children, `icon`, `enabled`, `marked`, `shortcut` (with Command), `modifiers` (`'shift'`, `'option'`, `'control'`) | `onClick()` |
 | `Separator` | `BSeparatorItem` | | |
+
+Items draw their `icon` before the label, dimmed while disabled; a `Menu` without a label shows only its icon, e.g. in the menu bar.
+
+A menu can load its items when it opens: with `onOpen` and no children it shows a disabled "Loading…" item (`loadingLabel`; `loading` forces it), and the open menu updates when the items arrive. `onOpen` and `onClose` are reported for mouse and keyboard use.
+
+```tsx
+<Menu label="Open recent" onOpen={loadRecent}>
+	{recent?.map((file) => <MenuItem key={file} onClick={() => open(file)}>{file}</MenuItem>)}
+</Menu>
+```
 
 Command+Q is handled by Haiku as a quit request for the application (see `onQuitRequest`), not by a menu item with that shortcut.
 
@@ -188,11 +243,13 @@ event handlers ◄── thread-safe function ◄─┘ (never waits for JS)
 - React changes the native views from the JS thread while holding the window's lock, the usual way to modify another thread's window in Haiku. All windows touched by one React commit stay locked until the commit is complete, so a window never draws a half-applied update.
 - Window threads send events to JavaScript through a non-blocking thread-safe function and never wait for it, which rules out deadlocks between the two sides.
 - Every container is backed by a view (`BGroupView`, `BGridView`, …). A Haiku layout without a view of its own deletes its items when it is attached elsewhere, which React's bottom-up tree building would trigger.
+- An open menu is a window of its own. While it is shown, React does not change its items directly: the menu's thread applies the newest item list, coalescing quick updates. Images are decoded on background threads and handed to their window when ready.
 
 The C++ part follows the `CODE_STYLE.md` of the surrounding development tree: tabs, `f`/`s`/`k` prefixes, braces on all bodies, exceptions for errors.
 
 ## Known limitations
 
 - Labeled `TextControl`s in a column do not align their text fields yet.
-- Changing a `ListView`'s `items` clears an uncontrolled selection.
-- No context (pop-up) menus, file panels, images or custom drawing yet.
+- `MenuField` shows item icons in its pop-up menu, not in the field.
+- Labels and other props of items in an open menu change directly, not through the menu's thread like added and removed items.
+- No context (pop-up) menus, file panels or custom drawing yet.

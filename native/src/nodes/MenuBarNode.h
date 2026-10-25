@@ -13,10 +13,12 @@ namespace HaikuReact {
 class MenuBarNode: public ViewNode {
 private:
 	BMenuBar *fMenuBar;
+	float fIconSize = 16;
 
 protected:
 	void AttachChild(Node &child, int32 index) final;
 	void DetachChild(Node &child) final;
+	void ApplyOwnProps(const PropSet &props) final;
 
 public:
 	explicit MenuBarNode(uint32 id);

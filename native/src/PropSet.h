@@ -8,6 +8,9 @@
 
 #include <napi.h>
 
+#include "ColumnSpec.h"
+#include "IconSource.h"
+
 
 namespace HaikuReact {
 
@@ -27,6 +30,21 @@ struct Insets {
 // Explicit layout size in pixels, B_SIZE_UNLIMITED or B_SIZE_UNSET.
 struct SizeValue {
 	float value {};
+};
+
+
+// Item ids given as strings, or as indices that stand for the ids "0", "1", ...
+struct IdList {
+	std::vector<std::string> ids;
+};
+
+
+// List entry given as a string or as {label, icon}.
+struct LabeledItem {
+	std::string label;
+	IconSource icon;
+
+	bool operator==(const LabeledItem &other) const = default;
 };
 
 
@@ -53,12 +71,22 @@ private:
 	void Convert(const char *key, const Napi::Value &value, alignment &result) const;
 	void Convert(const char *key, const Napi::Value &value, vertical_alignment &result) const;
 	void Convert(const char *key, const Napi::Value &value, border_style &result) const;
+	void Convert(const char *key, const Napi::Value &value, IconSource &result) const;
+	void Convert(const char *key, const Napi::Value &value, std::vector<LabeledItem> &result) const;
+	void Convert(const char *key, const Napi::Value &value, IdList &result) const;
+	void Convert(const char *key, const Napi::Value &value, std::vector<ColumnSpec> &result) const;
+	void Convert(const char *key, const Napi::Value &value, CellMap &result) const;
+	void Convert(const char *key, const Napi::Value &value, std::vector<SortKey> &result) const;
 
 	template<typename T>
 	void Convert(const char *key, const Napi::Value &value, std::optional<T> &result) const;
 
 public:
 	explicit PropSet(Napi::Object props);
+
+	// Parses an icon source object ({mimeType: ...}, {data: Uint8Array}, ...)
+	// nested in a prop; key names the prop in errors.
+	static IconSource ParseIconSource(const char *key, const Napi::Value &value);
 
 	template<typename T>
 	std::optional<T> Get(const char *key, const T &defaultValue) const;

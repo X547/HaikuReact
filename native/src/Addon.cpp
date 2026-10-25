@@ -8,6 +8,7 @@
 #include <napi.h>
 
 #include "AlertManager.h"
+#include "BitmapCache.h"
 #include "CommitScope.h"
 #include "EventBridge.h"
 #include "KeyModifiers.h"
@@ -253,6 +254,13 @@ static EventValue ValueArg(const Napi::CallbackInfo &info, size_t index)
 	}
 	if (value.IsArray()) {
 		const Napi::Array array = value.As<Napi::Array>();
+		if (array.Length() > 0 && array.Get(0u).IsString()) {
+			std::vector<std::string> strings;
+			for (uint32 i = 0; i < array.Length(); i++) {
+				strings.push_back(array.Get(i).ToString().Utf8Value());
+			}
+			return strings;
+		}
 		std::vector<int32> items;
 		for (uint32 i = 0; i < array.Length(); i++) {
 			items.push_back(array.Get(i).As<Napi::Number>().Int32Value());
@@ -262,7 +270,7 @@ static EventValue ValueArg(const Napi::CallbackInfo &info, size_t index)
 	if (value.IsUndefined()) {
 		return {};
 	}
-	throw Napi::TypeError::New(info.Env(), "expected a boolean, number, string or array of numbers");
+	throw Napi::TypeError::New(info.Env(), "expected a boolean, number, string or array of numbers or strings");
 }
 
 
@@ -312,6 +320,7 @@ static Napi::Value Stats(const Napi::CallbackInfo &info)
 	Napi::Object out = Napi::Object::New(info.Env());
 	out.Set("nodes", static_cast<double>(NodeRegistry::Count()));
 	out.Set("windows", ReactApplication::WindowCount());
+	out.Set("bitmaps", static_cast<double>(BitmapCache::Count()));
 
 	const std::vector<uint32> alertIds = AlertManager::OpenAlerts();
 	Napi::Array alerts = Napi::Array::New(info.Env(), alertIds.size());

@@ -2,7 +2,7 @@
 
 import {createRequire} from 'node:module';
 
-export type NativeEventValue = undefined | boolean | number | string | number[];
+export type NativeEventValue = undefined | boolean | number | string | number[] | string[];
 
 /** nodeId 0 addresses the application. */
 export type NativeEventHandler = (nodeId: number, name: string, value: NativeEventValue) => void;
@@ -48,15 +48,15 @@ export interface NativeBinding {
 	/** Drags with the mouse between two points in the node's view coordinates. */
 	drag(id: number, fromX: number, fromY: number, toX: number, toY: number): void;
 	/** Changes the node's value the way a user would, sending the usual events. */
-	input(id: number, value: boolean | number | string | readonly number[]): void;
+	input(id: number, value: boolean | number | string | readonly number[] | readonly string[]): void;
 	/** Sends a key press to a window, as the keyboard would. */
 	keyDown(windowId: number, bytes: string, modifiers: readonly ('shift' | 'option' | 'control' | 'command')[]): void;
 	/** Clicks a button of an open alert. */
 	pressAlertButton(alertId: number, index: number): void;
 	/** Asks the application to quit, as Deskbar or a shutdown would. */
 	postQuitRequest(): void;
-	/** Live native nodes, application windows (including alerts) and open alert ids. */
-	stats(): {nodes: number; windows: number; alerts: number[]};
+	/** Live native nodes, application windows (including alerts), cached icons and open alert ids. */
+	stats(): {nodes: number; windows: number; bitmaps: number; alerts: number[]};
 	dump(id: number): NativeDump;
 }
 
